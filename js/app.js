@@ -1,12 +1,12 @@
-// List of Seattle Traffic Cameras
-// http://data.seattle.gov/resource/65fc-btcc.json
 
 "use strict";
 
 
 $(document).ready(function() {
     var mapElem = document.getElementById('map');
-    var infoWindow = new google.maps.InfoWindow();
+    var markers = [];
+    var light;
+    var image = 'camera.png';
 
     var center = {
         lat: 47.6,
@@ -17,12 +17,45 @@ $(document).ready(function() {
         center: center,
         zoom: 12
     });
-});
-//put your code here to create the map, fetch the list of traffic cameras
-//and add them as markers on the map
-//when a user clicks on a marker, you should pan the map so that the marker
-//is at the center, and open an InfoWindow that displays the latest camera
-//image
-//you should also write the code to filter the set of markers when the user
-//types a search phrase into the search box
 
+    var infoWindow = new google.maps.InfoWindow();
+
+
+    $.getJSON('http://data.seattle.gov/resource/65fc-btcc.json')
+        .done(function(data) {
+            light = data;
+
+            data.forEach(function(light) {
+                var marker = {
+                    mark: new google.maps.Marker({
+                        position: {
+                            lat: Number(light.location.latitude),
+                            lng: Number(light.location.longitude)
+                        },
+                        icon: image,
+                        map: map
+                    }),
+                    name: light.cameralabel
+                };
+                markers.push(marker);
+
+                google.maps.event.addListener(marker.mark, 'click', function() {
+                    var html = '<h2>' + light.cameralabel + '</h2>';
+                    html += '<img src="' + light.imageurl.url + '"/>';
+                    infoWindow.setContent(html);
+                    infoWindow.open(map, this);
+                    map.panTo(marker.mark.getPosition());
+                });
+
+                google.maps.event.addListener(marker, 'click', function() {
+                    infoWindow.close();
+                });
+            });
+        })
+        .fail(function(error) {
+            window.alert(error);
+        })
+        .always(function() {
+           // $('#ajax-loader').fadeOut();
+        });
+});
