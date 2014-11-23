@@ -5,6 +5,7 @@ body, input {
 }
 
 #map {
+    margin-top: 1em;
     height: 800px;
     margin: 0;
     padding: 0;
